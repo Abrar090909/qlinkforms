@@ -57,3 +57,39 @@ export async function getCurrentWorkspace(user: SessionUser) {
   // Self-heal if first-login setup never ran (for example, it errored).
   return membership?.workspace ?? ensureUserSetup(user);
 }
+
+/** Rename the user's workspace. Owners and admins only. */
+export async function renameWorkspace(user: SessionUser, name: string) {
+  const clean = name.trim().replace(/\s+/g, " ");
+  if (clean.length < 1 || clean.length > 60) {
+    return { ok: false as const, message: "Use 1 to 60 characters" };
+  }
+  const workspace = await getCurrentWorkspace(user);
+  const membership = await db.membership.findUnique({
+    where: {
+      workspaceId_userId: { workspaceId: workspace.id, userId: user.id },
+    },
+    select: { role: true },
+  });
+  if (membership?.role !== "owner" && membership?.role !== "admin") {
+    return {
+      ok: false as const,
+      message: "Only the owner or an admin can rename the workspace",
+    };
+  }
+  await db.$transaction(async (tx) => {
+    await tx.workspace.update({
+      where: { id: workspace.id },
+      data: { name: clean },
+    });
+    await tx.auditLog.create({
+      data: {
+        workspaceId: workspace.id,
+        actorId: user.id,
+        action: "workspace.renamed",
+        metaJson: { name: clean },
+      },
+    });
+  });
+  return { ok: true as const };
+}
