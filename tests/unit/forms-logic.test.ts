@@ -7,7 +7,11 @@ import {
   validateAnswers,
   visibleBlockIds,
 } from "@/lib/forms/answers";
-import { computePrice, discountFor } from "@/lib/forms/pricing";
+import {
+  computePrice,
+  discountFor,
+  parsePaymentAnswer,
+} from "@/lib/forms/pricing";
 import {
   type Block,
   type BlockOf,
@@ -153,6 +157,24 @@ describe("computePrice", () => {
     const block = payment({ mode: "fixed", amountMinor: 150, itemLabel: "" });
     const r = computePrice(block, {}, { code: "X", type: "fixed", value: 100 });
     expect(r).toEqual({ ok: false, error: "The minimum payment is ₹1" });
+  });
+});
+
+describe("parsePaymentAnswer", () => {
+  it("keeps valid fields, trims codes and drops unknown keys", () => {
+    expect(
+      parsePaymentAnswer({ items: { aaaa: 2 }, couponCode: " TEN ", hack: 1 }),
+    ).toEqual({ items: { aaaa: 2 }, couponCode: "TEN" });
+    expect(parsePaymentAnswer(undefined)).toEqual({});
+  });
+
+  it("rejects wrong shapes and out-of-range numbers", () => {
+    expect(parsePaymentAnswer("x")).toBeNull();
+    expect(parsePaymentAnswer([1])).toBeNull();
+    expect(parsePaymentAnswer({ items: { aaaa: 1.5 } })).toBeNull();
+    expect(parsePaymentAnswer({ items: { aaaa: -1 } })).toBeNull();
+    expect(parsePaymentAnswer({ amountMinor: 1e12 })).toBeNull();
+    expect(parsePaymentAnswer({ tierId: 5 })).toBeNull();
   });
 });
 

@@ -303,6 +303,17 @@ describe("Data API grants", () => {
     await expectPgError(`select id from webhook_events`, [], "42501");
   });
 
+  it("rate limits are server-only", async () => {
+    await actAs("authenticated", a.userId);
+    await expectPgError(`select key from rate_limits`, [], "42501");
+    await actAs("anon");
+    await expectPgError(
+      `insert into rate_limits (key, window_start) values ('x', now())`,
+      [],
+      "42501",
+    );
+  });
+
   it("payments are read-only for users", async () => {
     await actAs("authenticated", a.userId);
     await expectPgError(
