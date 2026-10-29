@@ -513,7 +513,7 @@ function PaymentField({
   return (
     <section
       aria-labelledby={`${id}-title`}
-      className="glass flex flex-col gap-5 rounded-card p-5 sm:p-6"
+      className="tile flex flex-col gap-5 rounded-card p-5 sm:p-6"
     >
       <div className="flex flex-col gap-1">
         <h2 id={`${id}-title`} className="text-lg font-medium">

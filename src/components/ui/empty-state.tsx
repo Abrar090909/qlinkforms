@@ -9,7 +9,7 @@ type EmptyStateProps = {
   children?: ReactNode;
 };
 
-/** Glass panel with a soft copper glow and a single action. */
+/** Tile with a title, one line of text and a single action. */
 export function EmptyState({
   title,
   description,
@@ -18,11 +18,7 @@ export function EmptyState({
   children,
 }: EmptyStateProps) {
   return (
-    <div className="glass relative flex flex-col items-center gap-4 overflow-hidden rounded-panel px-6 py-14 text-center">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-24 left-1/2 size-72 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgb(222_125_77/0.25),transparent_70%)]"
-      />
+    <div className="tile flex flex-col items-center gap-3 rounded-panel px-6 py-14 text-center">
       <Heading className="relative text-2xl font-normal tracking-tight">
         {title}
       </Heading>

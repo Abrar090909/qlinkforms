@@ -26,8 +26,8 @@ export function readableTextOn(background: string) {
     : "#ffffff";
 }
 
-export const PRESET_CANVAS = { midnight: "#1b1b1b", paper: "#faf9fb" } as const;
-export const PRESET_FG = { midnight: "#ffffff", paper: "#2a222b" } as const;
+export const PRESET_CANVAS = { midnight: "#161616", paper: "#f6f5f1" } as const;
+export const PRESET_FG = { midnight: "#f5f5f4", paper: "#18181b" } as const;
 
 /** CSS variables for a public form theme. */
 export function themeStyle(

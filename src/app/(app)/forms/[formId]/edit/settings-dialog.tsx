@@ -10,12 +10,12 @@ import { contrastRatio, PRESET_CANVAS } from "@/lib/color";
 import type { FormSettings } from "@/lib/forms/schema";
 
 const ACCENTS = [
-  "#de7d4d",
-  "#fbbd58",
-  "#4ade80",
-  "#8b89f0",
-  "#f87171",
-  "#38bdf8",
+  "#18181b",
+  "#0b6b46",
+  "#1d4ed8",
+  "#6d28d9",
+  "#b42318",
+  "#a15c07",
 ];
 
 /** Theme (DESIGN.md section 2 presets) and form-level settings. */
@@ -56,7 +56,7 @@ export function SettingsDialog({
         <fieldset className="flex flex-col gap-3">
           <legend className="mb-2 text-sm font-medium">Theme</legend>
           <div className="grid grid-cols-2 gap-2">
-            {(["midnight", "paper"] as const).map((preset) => (
+            {(["paper", "midnight"] as const).map((preset) => (
               <label
                 key={preset}
                 className={cx(
@@ -126,7 +126,7 @@ export function SettingsDialog({
               <label className="flex min-h-11 items-center gap-2 text-sm">
                 <input
                   type="color"
-                  value={accent ?? "#de7d4d"}
+                  value={accent ?? "#18181b"}
                   onChange={(e) =>
                     onChange({
                       ...settings,

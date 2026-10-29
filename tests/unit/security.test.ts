@@ -98,7 +98,7 @@ describe("theme colours", () => {
   });
 
   it("falls back to text colour for focus rings on low-contrast accents", () => {
-    expect(themeStyle("paper", "#fbbd58")["--color-focus"]).toBe("#2a222b");
+    expect(themeStyle("paper", "#fbbd58")["--color-focus"]).toBe("#18181b");
     expect(themeStyle("midnight", "#de7d4d")["--color-focus"]).toBe("#de7d4d");
   });
 });

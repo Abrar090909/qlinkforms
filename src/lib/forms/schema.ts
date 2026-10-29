@@ -155,14 +155,14 @@ export type ThemePreset = (typeof THEME_PRESETS)[number];
 export const settingsSchema = z.object({
   theme: z
     .object({
-      preset: z.enum(THEME_PRESETS).default("midnight"),
+      preset: z.enum(THEME_PRESETS).default("paper"),
       accent: z
         .string()
         .regex(/^#[0-9a-fA-F]{6}$/)
         .nullable()
         .default(null),
     })
-    .default({ preset: "midnight", accent: null }),
+    .default({ preset: "paper", accent: null }),
   submitLabel: z.string().trim().max(40).default(""),
   thankYouTitle: z.string().trim().max(120).default("Thank you!"),
   thankYouMessage: z

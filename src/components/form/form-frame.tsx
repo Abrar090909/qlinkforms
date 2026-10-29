@@ -19,12 +19,6 @@ export function FormFrame({
       style={themeStyle(theme.preset, theme.accent)}
       className="relative flex min-h-full flex-1 flex-col bg-canvas text-fg"
     >
-      {theme.preset === "midnight" && (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-[radial-gradient(ellipse_at_top,rgb(222_125_77/0.14),transparent_65%)]"
-        />
-      )}
       <main className="relative mx-auto flex w-full max-w-form flex-1 flex-col px-4 py-10 sm:py-16">
         {children}
       </main>

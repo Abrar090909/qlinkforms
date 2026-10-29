@@ -190,7 +190,7 @@ async function Responses({
               row.receipt;
             return (
               <li key={row.id}>
-                <details className="glass group rounded-card">
+                <details className="tile group rounded-card">
                   <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-3 sm:px-5 [&::-webkit-details-marker]:hidden">
                     <StatusPill status={row.status} />
                     <span className="min-w-0 flex-1 truncate font-medium">
@@ -314,7 +314,7 @@ async function Responses({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="glass flex flex-col gap-1 rounded-card p-5">
+    <div className="tile flex flex-col gap-1 rounded-card p-5">
       <dt className="text-sm text-fg-muted">{label}</dt>
       <dd className="text-2xl font-normal tracking-tight tabular-nums">
         {value}

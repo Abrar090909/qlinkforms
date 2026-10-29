@@ -20,7 +20,7 @@ export function Alert({
   return (
     <div
       role={tone === "error" ? "alert" : "status"}
-      className={`glass rounded-input border-l-4 ${borders[tone]} px-4 py-3 text-sm text-fg`}
+      className={`tile rounded-input border-l-4 ${borders[tone]} px-4 py-3 text-sm text-fg`}
     >
       {children}
     </div>

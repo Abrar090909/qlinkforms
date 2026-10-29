@@ -288,9 +288,7 @@ describe("form schema", () => {
       blocks: [createBlock("email")],
     });
     expect(parsed.success).toBe(true);
-    expect(parsed.success && parsed.data.settings.theme.preset).toBe(
-      "midnight",
-    );
+    expect(parsed.success && parsed.data.settings.theme.preset).toBe("paper");
   });
 
   it("rejects conditions that point forward or at themselves", () => {

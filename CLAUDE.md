@@ -88,7 +88,7 @@ A deployed skeleton where a user can sign up, log in, create a workspace, and se
 ### D. Design system
 - `src/styles/tokens.css`: color, type scale, spacing, radius, shadow tokens. Light and dark via `prefers-color-scheme`.
 - Primitives in `components/ui`: Button, Input, Select, Card, Dialog, Toast, EmptyState. Mobile-first, keyboard accessible, WCAG AA contrast.
-- Follow `DESIGN.md` in the repo root for all colors, fonts, radii and components. Do not invent design values from memory; if something is missing from `DESIGN.md`, ask me. Take patterns from Typeform, Jotform and Paperform, never their assets, copy or proprietary fonts. Since 2026-10-29 the visual style is the dark "Midnight" system in `DESIGN.md` v2, inspired by lafys.com: take its style only, never its prompt code, copy or images.
+- Follow `DESIGN.md` in the repo root for all colors, fonts, radii and components. Do not invent design values from memory; if something is missing from `DESIGN.md`, ask me. Take patterns from Typeform, Jotform and Paperform, never their assets, copy or proprietary fonts. The visual style is `DESIGN.md` v3 "Ledger" (light paper, hairline tiles, ink actions, green only for money). The dark v2 "Midnight" style was rejected as generic; do not bring back glows, glass, grain or scroll reveals.
 
 ### E. App shell
 - Marketing landing placeholder, authenticated dashboard with an empty state ("Create your first form"), and a "New form" button that creates a draft form and routes to a placeholder editor page.

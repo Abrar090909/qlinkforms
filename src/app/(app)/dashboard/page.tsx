@@ -68,7 +68,7 @@ async function Forms() {
     <div className="flex flex-col gap-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-2">
-          <p className="text-eyebrow text-fg-muted uppercase">Workspace</p>
+          <p className="text-eyebrow font-medium text-fg-muted">Workspace</p>
           <h1 className="text-3xl font-normal tracking-tight">Forms</h1>
         </div>
         <NewFormButton />
@@ -88,7 +88,7 @@ async function Forms() {
       </dl>
 
       {!payments.connected && (
-        <div className="glass flex flex-col gap-3 rounded-card border-l-4 border-l-accent p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="tile flex flex-col gap-3 rounded-card border-l-4 border-l-accent p-5 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm">
             <span className="font-medium">
               Connect Razorpay to take payments.
@@ -110,7 +110,7 @@ async function Forms() {
         {forms.map((form) => (
           <li
             key={form.id}
-            className="glass group relative flex flex-col gap-4 rounded-card p-5 transition-colors hover:border-line-strong"
+            className="tile group relative flex flex-col gap-4 rounded-card p-5 transition-colors hover:border-line-strong"
           >
             <div className="flex items-start justify-between gap-2">
               <StatusPill status={form.status} />
@@ -160,7 +160,7 @@ function Stat({
   className?: string;
 }) {
   return (
-    <div className={`glass flex flex-col gap-1 rounded-card p-5 ${className}`}>
+    <div className={`tile flex flex-col gap-1 rounded-card p-5 ${className}`}>
       <dt className="text-sm text-fg-muted">{label}</dt>
       <dd className="text-2xl font-normal tracking-tight tabular-nums">
         {value}

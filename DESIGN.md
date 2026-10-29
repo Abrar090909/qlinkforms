@@ -1,104 +1,76 @@
-# DESIGN.md: UPI Forms (v2, "Midnight")
+# DESIGN.md: UPI Forms (v3, "Ledger")
 
-Design system for the marketing site, dashboard, builder and public form pages. Claude reads this together with `CLAUDE.md`. Values are tagged with where they came from.
+Design system for the marketing site, dashboard, builder and public forms. Claude reads this together with `CLAUDE.md`. Tokens live in `src/styles/tokens.css`; this file explains them.
 
-## 0. Sources and rules
+## 0. Sources and why v3
 
-**Direction (decided 2026-10-29):** a dark, cinematic product across every surface, inspired by the free landing-page prompts on lafys.com ("Geptral", "CryptoWave", "AI Landing Page"). Earlier patterns from Typeform, Jotform and Paperform still guide the builder and form behaviour (section 6).
+v2 ("Midnight": dark glass, glows, grain, copper, weight-300 display, scroll reveals) read as generic AI output, and the owner rejected it on 2026-10-29. v3 follows patterns shared by well-regarded product design systems, studied through community DESIGN.md libraries the owner pointed to (getdesign.md, designmd.me, styles.refero.design, Kage, 21st.dev). The closest references were the Ramp-inspired and Brex-inspired files on shadcn.io/design.
 
 **Rules**
-1. Take the style, not the work. The lafys prompts are rebuild scripts for other people's sites. Never copy their code verbatim, their copy, or their images, and never hot-link their asset hosts (qclay.design).
-2. Open fonts only (Google Fonts via `next/font`).
-3. Every text and control colour pair must meet WCAG AA. Ratios are listed next to each token. If you add a colour, add its ratio.
-4. **[lafys]** means the value appears in the lafys prompts. **[ours]** means a decision for this product.
+1. Take patterns, never a brand's palette, copy, logo or proprietary font.
+2. Every text and control colour pair meets WCAG AA. Ratios are listed next to each token. If you add a colour, add its ratio.
+3. If something isn't covered here, ask before inventing it.
 
-## 1. What we borrow from lafys
+## 1. Principles (what makes it not look generated)
 
-| Pattern | Where we use it |
-|---|---|
-| Near-black canvas `#1b1b1b` with white type, no pure black | Everything |
-| One sans for everything, Inter Tight, big and tight display type (weights 200 to 600) | Headings, UI, forms |
-| Headlines that reveal line by line on scroll (masked lines sliding up, 0.8s, ease `[0.22, 1, 0.36, 1]`) | Marketing site only |
-| Frosted glass panels: white at 2 to 6% opacity, 1px white border at 10%, backdrop blur | Cards, nav, dialogs, payment summary |
-| Warm copper accent `#de7d4d` used sparingly | Primary buttons, links, focus, selected states |
-| Grain and soft radial glows behind hero content | Marketing hero, empty states |
+- **One canvas, white tiles, hairlines.** Depth comes from a 1px `--line` border on a white tile over warm paper. Use a shadow only for things that float (menus, dialogs, the hero mock).
+- **One action colour: ink.** Primary buttons are near-black with white text.
+- **Green means money.** `--brand` appears only for paid states, success, the focus ring and small labels. Never use it for decoration.
+- **Hierarchy from size, not weight.** Use weight 500 for headings and 400 for body. Never 300, never bold display text.
+- **Show the product.** Marketing visuals are real UI built in markup (forms, tables, receipts). Never use blobs, glows, grain, sparkles or stock illustrations.
+- **Numbers are mono.** Amounts, receipt numbers and counts use Geist Mono.
+- **Calm.** No scroll-triggered animations, marquees or parallax. Transitions run 150ms on hover and focus only.
 
-## 2. Color tokens
+## 2. Colour
 
-```css
---canvas: #1b1b1b;          /* [lafys] page background */
---surface: rgb(255 255 255 / 0.04);  /* [lafys] glass panel */
---surface-solid: #262626;   /* [ours] solid fallback, inputs */
---surface-hover: rgb(255 255 255 / 0.07);
---fg: #ffffff;              /* [lafys] 17.2:1 on canvas */
---fg-muted: #a2a2a2;        /* [lafys] 6.8:1 canvas, 5.9:1 solid */
---fg-subtle: #888888;       /* [lafys] 4.9:1 canvas. Placeholders, captions. Not on solid surfaces. */
---line: rgb(255 255 255 / 0.10);     /* [lafys] decorative borders */
---line-strong: #747578;     /* [lafys] 3.7:1 canvas, 3.3:1 solid. Input outlines. */
---accent: #de7d4d;          /* [lafys] copper. 5.9:1 on canvas, so text, links and focus are fine */
---accent-fg: #1b1b1b;       /* text on copper buttons, 5.9:1 (white on copper is only 2.9:1) */
---success: #4ade80;         /* [ours] 9.9:1 */
---warning: #fbbd58;         /* [lafys] 10.3:1 */
---danger: #f87171;          /* [ours] 6.2:1 */
-```
+| Token | Value | Use | Contrast |
+|---|---|---|---|
+| `canvas` | `#f6f5f1` | page background | |
+| `surface` | `#ffffff` | tiles, inputs | |
+| `surface-hover` | `#efeee9` | hover, selected rows | |
+| `fg` | `#18181b` | text, primary button fill | 16.2:1 on canvas |
+| `fg-muted` | `#5c5b57` | secondary text | 6.2:1 |
+| `fg-subtle` | `#6b6964` | captions, placeholders | 5.0:1 |
+| `line` | `#e4e2dc` | hairlines | decorative |
+| `line-strong` | `#8f8d86` | input outlines | 3.0:1 |
+| `brand` | `#0b6b46` | money, success, focus | 6.0:1 |
+| `brand-tint` | `#e5f0ea` | paid badges, selection | brand on tint 5.6:1 |
+| `warning` | `#a15c07` | pending | 4.8:1 |
+| `danger` | `#b42318` | errors, failed | 6.0:1 |
 
-The app is dark only. Public forms are themeable (section 6).
+**Public form presets:** *Paper* (default, the palette above) and *Midnight* (dark: canvas `#161616`, surface `#1f1f1f`, fg `#f5f5f4` at 16.6:1, muted `#a8a6a1` at 6.8:1, line-strong `#6f6e6a` at 3.2:1, brand `#4ade80`). Owners can set an accent for the Pay button. Its text colour is computed to whichever of black or white reads better, and the focus ring falls back to the text colour when the accent is under 3:1.
 
-**Public form presets [ours]:**
-- **Midnight** (default): the tokens above.
-- **Paper**: canvas `#faf9fb`, surface `#ffffff`, fg `#2a222b`, muted `#655d67` (6.0:1), line-strong `#837a85` (3.9:1), accent `#2a222b` with fg `#faf9fb`. This keeps a light option for respondents.
-- Owners can set a custom accent hex. The app computes the button text colour (black or white, whichever contrasts more). If the accent is under 3:1 against the canvas, focus rings fall back to `fg`.
+## 3. Type
 
-## 3. Typography
+- **Geist** for everything; **Geist Mono** for amounts, receipts and step numbers.
+- **Scale:** 12, 14, 16, 18, 20, 24, 32. Headings `clamp(32px, 4vw, 44px)` at line height 1.08 and tracking −0.025em. Display `clamp(40px, 6vw, 64px)` at line height 1.02 and tracking −0.035em.
+- **Section labels:** 13px, weight 500, `brand` colour, sentence case. Never uppercase with wide tracking.
 
-| Role | Font |
-|---|---|
-| Everything | **Inter Tight** [lafys], weights 300 to 600 |
-| Hindi and regional text | Noto Sans Devanagari (when Hindi UI ships) |
+## 4. Shape and space
 
-**Scale [ours, from lafys proportions]:** 12, 14, 16, 18, 22, 28, 36. Marketing: display `clamp(48px, 9vw, 120px)` / 0.95, weight 300, tracking -0.04em. Heading `clamp(36px, 5vw, 64px)` / 1.05, weight 400, tracking -0.03em. Eyebrow: 12px uppercase, tracking 0.2em, `--fg-muted`.
-
-## 4. Spacing, shape, elevation
-
-- 8px grid (Tailwind even steps).
-- Radius: inputs and small buttons 12px, cards 20px, large panels 28px, pills 999px. Primary CTAs on marketing are pills.
-- **Elevation is glass, not shadow.** A panel is `--surface`, a 1px `--line` border and `backdrop-blur(16px)`. The one exception is a soft copper glow (radial gradient, 20% opacity) behind hero art.
-- Max widths: marketing 1280px, app content 1120px, public form column 680px.
+- 8px grid (Tailwind even steps). Sections get 80px of vertical padding, separated by a hairline.
+- **Radius:** inputs and buttons 10px, tiles 12px, large panels 16px, pills only for status badges.
+- **Shadow:** `shadow-float` for floating elements only.
+- **Widths:** marketing 1200px, app 1120px, public form 640px.
 
 ## 5. Components
 
-- **Primary button:** copper fill, `--accent-fg` text, 12px radius (pill on marketing), min height 44px, weight 500. Hover lifts brightness by 8%.
-- **Secondary button:** glass (`--surface`), `--line` border, white text.
-- **Ghost button:** text only, underline on hover.
-- **Payment button:** primary style showing the amount, for example "Pay ₹499".
-- **Input:** `--surface-solid` fill, 1px `--line-strong`, 12px radius, 48px tall, label above, copper focus ring.
-- **Card:** glass panel, 20px radius, 24px padding.
-- **Status pill:** dot plus text, so colour is never the only signal. Paid = success, pending = warning, failed = danger, free = muted.
-- **Toast:** glass panel, bottom centre on mobile and bottom right on desktop, one action.
-- **Empty state:** glass panel with a soft copper glow, a title, one line of text and one action.
+- **Primary button:** ink fill, white text, 10px radius, 44px tall (36px `sm` in dense toolbars), hover at 85% opacity.
+- **Secondary button:** white tile with a hairline, ink text.
+- **Ghost button:** text only.
+- **Payment button:** primary, showing the amount ("Pay ₹499").
+- **Input:** white, 1px `line-strong`, 10px radius, 48px tall, label above, green focus ring.
+- **Tile (`.tile`):** white with a 1px `line` border. Cards are tiles with 24px padding.
+- **Status pill:** a dot plus text, so colour never carries meaning alone.
+- **Toasts, dialogs, empty states:** tiles. Each has one action.
 
 ## 6. Key screens
 
-- **Marketing:** a hero with a huge line-revealed headline and grain plus glow, a product mock in a glass frame, sections for how it works, features, use cases and the money flow, then pricing and a CTA. Every section has an eyebrow, a heading and at most one CTA.
-- **Dashboard:** a glass top bar, then form cards with response count, revenue and a status pill. Empty state: "Create your first form" with a template gallery.
-- **Builder (Paperform pattern):** a document canvas on the left (type, then `/` to insert fields), a live phone-width preview on the right, and a top bar with the title, Theme, Preview and Publish. Autosave.
-- **Public form:** a single centred column, Page layout, an order summary card on glass, one Pay button and a receipt screen with a receipt number. No confetti.
+- **Marketing:** a hero of headline, one line of copy and two buttons beside a product composite (builder, phone, receipt). Then how it works, a 2×2 product mosaic, money flow, templates, pricing, FAQ, and a single dark ink band for the final CTA.
+- **Dashboard:** totals as tiles, then form cards with status, responses and revenue.
+- **Builder:** a document canvas with a live phone preview (Paperform pattern).
+- **Public form:** a single column, the order summary in a tile, one Pay button and a receipt page.
 
-## 7. Motion and accessibility
+## 7. Accessibility and performance
 
-- Marketing reveals: 0.6 to 0.8s, ease `[0.22, 1, 0.36, 1]` [lafys], triggered once when the element scrolls into view. App UI transitions: 150 to 200ms.
-- `prefers-reduced-motion`: no reveals or parallax; content appears instantly.
-- WCAG AA, visible focus rings (2px copper), touch targets of at least 44px, keyboard operable throughout.
-- Mobile first: design the public form at 360px width.
-
-## 8. Do and don't
-
-- Do keep one accent on screen at a time and let type and space do the work.
-- Don't use pure black (`#000`) or pure white page backgrounds in the app.
-- Don't put white text on copper (2.9:1).
-- Don't use framer-motion, zod or other heavy JavaScript on the public form page. Measured 2026-10-29: 145 KB gzipped for modern browsers, about 135 KB of which is the Next.js and React runtime every page carries, so the plan's 100 KB target isn't reachable on Next.js. Keep the form's own code small and re-measure when it grows.
-
-## 9. Open decisions
-
-1. Product name and logo.
-2. More public form presets after beta feedback.
+WCAG AA, visible focus rings, touch targets of at least 44px, keyboard operable throughout, and `prefers-reduced-motion` respected. The public form ships no animation library or zod. Measured on 2026-10-29: 145 KB gzipped, about 135 KB of which is the Next.js and React runtime.

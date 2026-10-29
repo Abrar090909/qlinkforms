@@ -15,7 +15,7 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-2">
-        <p className="text-eyebrow text-fg-muted uppercase">Workspace</p>
+        <p className="text-eyebrow font-medium text-fg-muted">Workspace</p>
         <h1 className="text-3xl font-normal tracking-tight">Settings</h1>
       </div>
       <Suspense fallback={<p className="text-fg-muted">Loading…</p>}>

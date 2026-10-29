@@ -9,10 +9,10 @@ const base =
   "disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:cursor-not-allowed aria-disabled:opacity-50";
 
 // DESIGN.md section 5. Primary: copper fill with dark text (white on copper is
-// only 2.9:1). Secondary: glass. Ghost: text only.
+// only 2.9:1). Secondary: tile. Ghost: text only.
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-accent text-accent-fg hover:brightness-110",
-  secondary: "glass text-fg hover:border-line-strong hover:bg-surface-hover",
+  primary: "bg-accent text-accent-fg hover:opacity-85",
+  secondary: "tile text-fg hover:border-line-strong hover:bg-surface-hover",
   ghost: "bg-transparent text-fg hover:bg-surface-hover",
   danger:
     "border border-danger/60 bg-transparent text-danger hover:bg-danger/10",

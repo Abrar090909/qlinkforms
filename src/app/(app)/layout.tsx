@@ -13,7 +13,7 @@ import { NavLink } from "./nav-link";
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <header className="glass sticky top-0 z-40 border-x-0 border-t-0">
+      <header className="tile sticky top-0 z-40 border-x-0 border-t-0">
         <div className="mx-auto flex w-full max-w-app items-center justify-between gap-3 px-4 py-2 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <Link

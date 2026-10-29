@@ -202,7 +202,7 @@ export function Builder(props: Props) {
   return (
     <div className="-mx-4 -my-8 flex flex-1 flex-col sm:-mx-6 sm:-my-12">
       {/* Top bar */}
-      <div className="sticky top-[61px] z-30 border-b border-line bg-canvas/90 backdrop-blur-glass">
+      <div className="sticky top-[61px] z-30 border-b border-line bg-canvas">
         <div className="mx-auto flex w-full max-w-app flex-wrap items-center justify-between gap-2 px-4 py-2 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <Link
@@ -411,7 +411,7 @@ export function Builder(props: Props) {
             view === "edit" && "hidden lg:block",
           )}
         >
-          <p className="mb-3 text-eyebrow text-fg-muted uppercase">
+          <p className="mb-3 text-eyebrow font-medium text-fg-muted">
             Live preview
           </p>
           <div className="mx-auto w-full max-w-[380px] overflow-hidden rounded-[36px] border border-line bg-surface p-2">
