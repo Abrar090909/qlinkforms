@@ -9,3 +9,5 @@ CLAUDE.md
 DESIGN.md
 AGENTS.md
 docs/
+src/generated/
+prisma/migrations/
