@@ -42,8 +42,8 @@ export default function Home() {
             Collect payments with every form.
           </h1>
           <p className="max-w-xl text-body-lg text-fg-muted">
-            Registrations, orders, fees and donations. Build the form, share
-            the link, get paid over UPI.
+            Registrations, orders, fees and donations. Build the form, share the
+            link, get paid over UPI.
           </p>
           <Link href="/signup" className={buttonClasses()}>
             Create a free account

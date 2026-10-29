@@ -46,7 +46,9 @@
   --color-inverse: var(--palette-ink); /* dark marketing sections */
   --color-inverse-fg: var(--palette-canvas);
   --color-inverse-raised: var(--palette-ink-elevated); /* cards on inverse */
-  --color-eyebrow: var(--palette-eyebrow); /* labels only, never buttons or links */
+  --color-eyebrow: var(
+    --palette-eyebrow
+  ); /* labels only, never buttons or links */
   --color-accent: var(--palette-accent);
   /* The accent is 2.9:1 on canvas, under AA for focus rings (3:1) and links
      (4.5:1), so light mode uses ink. Point these back at the accent once the
@@ -136,7 +138,9 @@
     --color-primary-border: var(--palette-canvas);
     --color-inverse: var(--palette-ink-elevated);
     --color-inverse-raised: var(--palette-ink);
-    --color-eyebrow: var(--palette-eyebrow-tint); /* the purple is 3.0:1 on ink */
+    --color-eyebrow: var(
+      --palette-eyebrow-tint
+    ); /* the purple is 3.0:1 on ink */
     --color-focus: var(--palette-accent); /* 4.1:1 on elevated */
     --color-link: var(--palette-canvas);
   }

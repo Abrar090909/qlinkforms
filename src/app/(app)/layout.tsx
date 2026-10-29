@@ -13,7 +13,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-full flex-1 flex-col">
       <header className="flex items-center justify-between gap-4 border-b border-line bg-surface-alt px-4 py-2 sm:px-6">
         <div className="flex min-w-0 items-center gap-4">
-          <Link href="/dashboard" className="shrink-0 font-semibold no-underline">
+          <Link
+            href="/dashboard"
+            className="shrink-0 font-semibold no-underline"
+          >
             UPI Forms
           </Link>
           <span aria-hidden="true" className="h-6 w-px bg-line" />
