@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { cache } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -31,6 +32,9 @@ export function toSessionUser(user: User): SessionUser {
 
 /** The verified signed-in user, or null. Memoised per request. */
 export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
+  // Checking token expiry reads the clock, so this is always request-time work.
+  // Without it, runtime prefetching hits Date.now() and errors.
+  await connection();
   const supabase = await createSupabaseServerClient();
   // getClaims verifies the JWT signature; getSession alone would trust the cookie.
   const { data, error } = await supabase.auth.getClaims();
