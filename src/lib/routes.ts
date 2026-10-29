@@ -3,7 +3,7 @@
 export const DEFAULT_AFTER_LOGIN = "/dashboard";
 
 // Everything under these paths needs a signed-in user. Keep in sync with src/app/(app).
-const PROTECTED_PREFIXES = ["/dashboard", "/forms"];
+const PROTECTED_PREFIXES = ["/dashboard", "/forms", "/settings"];
 
 // Signed-in users are sent away from these to the dashboard.
 const AUTH_PAGES = ["/login", "/signup"];
