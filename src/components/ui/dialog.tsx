@@ -45,12 +45,12 @@ export function Dialog({
       // Escape and form[method=dialog] fire "close"; keep `open` in sync.
       onClose={onClose}
       // A click on the backdrop lands on the <dialog> element itself.
-      // The backdrop is --palette-ink at 60%, written out because older
-      // browsers don't pass custom properties to ::backdrop.
+      // The backdrop colour is written out because older browsers don't pass
+      // custom properties to ::backdrop.
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
-      className="m-auto w-[calc(100%-32px)] max-w-md rounded-card border border-line bg-surface p-0 text-fg backdrop:bg-[rgb(42_34_43/0.6)]"
+      className="m-auto w-[calc(100%-32px)] max-w-md rounded-panel border border-line bg-surface-solid p-0 text-fg backdrop:bg-[rgb(0_0_0/0.65)]"
     >
       <div className="flex flex-col gap-4 p-6">
         <h2 id={titleId} className="text-xl font-semibold">

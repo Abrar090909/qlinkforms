@@ -82,7 +82,7 @@ function ToastItem({
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
-      className="pointer-events-auto flex w-full max-w-sm items-center gap-2 rounded-button border border-line bg-surface-alt py-2 pr-2 pl-4 text-sm text-fg"
+      className="glass pointer-events-auto flex w-full max-w-sm items-center gap-2 rounded-card bg-surface-solid py-2 pr-2 pl-4 text-sm text-fg"
     >
       <p className="flex-1">{toast.message}</p>
       {toast.action && (

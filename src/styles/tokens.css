@@ -1,151 +1,113 @@
 /*
- * Design tokens. Every value comes from DESIGN.md; notes mark the few places
- * where a role had to use a different DESIGN.md colour to meet WCAG AA.
+ * Design tokens, DESIGN.md v2 ("Midnight"). The @theme block turns tokens into
+ * Tailwind utilities (bg-canvas, text-fg-muted, rounded-card ...). Tailwind's
+ * default palette, radii and shadows are cleared so only these values exist.
  *
- * The @theme block turns tokens into Tailwind utilities (bg-canvas,
- * rounded-card, text-display, font-display ...). Tailwind's default palette,
- * radii and shadows are cleared so only DESIGN.md values can be used.
+ * Colour roles are plain CSS variables, so a public form can swap the whole
+ * palette by setting data-theme="paper" or an inline --color-accent.
  */
 
-/* Palette (DESIGN.md section 2). Plain variables: no utilities, use roles. */
-:root {
-  --palette-canvas: #faf9fb;
-  --palette-surface-alt: #f5f3f6;
-  --palette-surface: #ffffff;
-  --palette-ink: #2a222b;
-  --palette-ink-elevated: #3e3040;
-  --palette-text-secondary: #655d67;
-  --palette-text-placeholder: #837a85;
-  --palette-border: #d4d1d5;
-  --palette-border-dark: #564b58;
-  --palette-eyebrow: #9454ab;
-  --palette-eyebrow-tint: #ddb7f0;
-  --palette-accent: #0099ff; /* [placeholder] until our brand accent is chosen */
-  --palette-accent-ink: #0a1551;
-  --palette-success: #16a34a;
-  --palette-warning: #d97706;
-  --palette-danger: #dc2626;
-}
-
 @theme {
-  /* Colour roles, light ("Paper"). Dark overrides are below. */
   --color-*: initial;
-  --color-canvas: var(--palette-canvas);
-  --color-surface: var(--palette-surface);
-  --color-surface-alt: var(--palette-surface-alt);
-  --color-fg: var(--palette-ink);
-  --color-fg-muted: var(--palette-text-secondary);
-  --color-fg-placeholder: var(--palette-text-placeholder);
-  --color-line: var(--palette-border); /* dividers and card edges only */
-  /* Input outlines need 3:1. --border is 1.5:1 on white, so inputs use the
-     placeholder grey (4.1:1). */
-  --color-line-strong: var(--palette-text-placeholder);
-  --color-primary: var(--palette-ink);
-  --color-primary-fg: var(--palette-canvas);
-  --color-primary-border: var(--palette-ink);
-  --color-inverse: var(--palette-ink); /* dark marketing sections */
-  --color-inverse-fg: var(--palette-canvas);
-  --color-inverse-raised: var(--palette-ink-elevated); /* cards on inverse */
-  --color-eyebrow: var(
-    --palette-eyebrow
-  ); /* labels only, never buttons or links */
-  --color-accent: var(--palette-accent);
-  /* The accent is 2.9:1 on canvas, under AA for focus rings (3:1) and links
-     (4.5:1), so light mode uses ink. Point these back at the accent once the
-     brand colour passes. */
-  --color-focus: var(--palette-ink);
-  --color-link: var(--palette-ink);
-  /* Danger passes as text on canvas/white only; error text uses fg plus a
-     danger border so it never relies on colour alone. Success and warning are
-     about 3.2:1: borders and icons, not text. */
-  --color-danger: var(--palette-danger);
-  --color-success: var(--palette-success);
-  --color-warning: var(--palette-warning);
+  --color-canvas: #1b1b1b; /* lafys */
+  --color-surface: rgb(255 255 255 / 0.04); /* glass */
+  --color-surface-solid: #262626;
+  --color-surface-hover: rgb(255 255 255 / 0.07);
+  --color-fg: #ffffff; /* 17.2:1 */
+  --color-fg-muted: #a2a2a2; /* 6.8:1 canvas, 5.9:1 solid */
+  --color-fg-subtle: #888888; /* 4.9:1 canvas only */
+  --color-line: rgb(255 255 255 / 0.1);
+  --color-line-strong: #747578; /* 3.7:1, input outlines */
+  --color-accent: #de7d4d; /* copper, 5.9:1 */
+  --color-accent-fg: #1b1b1b; /* text on copper; white is only 2.9:1 */
+  --color-focus: var(--color-accent);
+  --color-success: #4ade80;
+  --color-warning: #fbbd58;
+  --color-danger: #f87171;
+  --color-scrim: rgb(0 0 0 / 0.6);
 
-  /* Fonts (DESIGN.md section 3). The --font-*-src variables come from next/font. */
   --font-*: initial;
-  --font-sans: var(--font-inter-src), ui-sans-serif, system-ui, sans-serif;
-  --font-form: var(--font-work-sans-src), var(--font-sans);
-  --font-display: var(--font-playfair-src), ui-serif, Georgia, serif;
+  --font-sans:
+    var(--font-inter-tight-src), ui-sans-serif, system-ui, sans-serif;
 
-  /* App scale: 12, 14, 16, 20, 24, 32 (DESIGN.md section 3). DESIGN.md gives no
-     line heights for 12, 24 and 32; those use Tailwind's defaults. */
+  /* App scale: 12, 14, 16, 18, 22, 28, 36 */
   --text-*: initial;
   --text-xs: 12px;
-  --text-xs--line-height: 1.333;
+  --text-xs--line-height: 1.4;
   --text-sm: 14px;
-  --text-sm--line-height: 1.43;
+  --text-sm--line-height: 1.45;
   --text-base: 16px;
-  --text-base--line-height: 1.49;
-  --text-lg: 20px;
-  --text-lg--line-height: 1.4;
-  --text-xl: 24px;
-  --text-xl--line-height: 1.333;
-  --text-2xl: 32px;
-  --text-2xl--line-height: 1.25;
+  --text-base--line-height: 1.5;
+  --text-lg: 18px;
+  --text-lg--line-height: 1.45;
+  --text-xl: 22px;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 28px;
+  --text-2xl--line-height: 1.2;
+  --text-3xl: 36px;
+  --text-3xl--line-height: 1.1;
+  /* Marketing */
+  --text-display: clamp(48px, 9vw, 120px);
+  --text-display--line-height: 0.95;
+  --text-display--letter-spacing: -0.04em;
+  --text-heading: clamp(36px, 5vw, 64px);
+  --text-heading--line-height: 1.05;
+  --text-heading--letter-spacing: -0.03em;
+  --text-eyebrow: 12px;
+  --text-eyebrow--line-height: 1.2;
+  --text-eyebrow--letter-spacing: 0.2em;
 
-  /* Marketing scale (DESIGN.md section 3) */
-  --text-caption: 14px;
-  --text-caption--line-height: 1.2;
-  --text-body-lg: 20px;
-  --text-body-lg--line-height: 1.4;
-  --text-heading-sm: 48px;
-  --text-heading-sm--line-height: 1.1;
-  --text-heading: 64px;
-  --text-heading--line-height: 1.1;
-  --text-heading--letter-spacing: -1.98px;
-  --text-display: 80px;
-  --text-display--line-height: 1;
-  --text-display--letter-spacing: -0.96px;
-
-  /* Spacing stays on Tailwind's 4px step. DESIGN.md's 8px grid means even
-     steps only: 2, 4, 6, 8, 10, 12, 16 (8 to 64px). */
-
-  /* Radius (DESIGN.md section 4) */
   --radius-*: initial;
-  --radius-image: 8px;
+  --radius-input: 12px;
   --radius-button: 12px;
-  --radius-card: 24px;
-  --radius-pill: 80px;
+  --radius-card: 20px;
+  --radius-panel: 28px;
+  --radius-pill: 999px;
 
-  /* Elevation: DESIGN.md forbids shadows, so there are no shadow utilities.
-     Depth comes from surface contrast (white card on canvas). */
+  /* Elevation is glass, never shadow (DESIGN.md section 4). */
   --shadow-*: initial;
   --inset-shadow-*: initial;
   --drop-shadow-*: initial;
 
-  /* Motion (DESIGN.md section 7): 150-250ms, no bounce */
-  --default-transition-duration: 200ms;
-  --default-transition-timing-function: ease;
+  --blur-*: initial;
+  --blur-glass: 16px;
 
-  /* Layout widths (DESIGN.md section 4) */
-  --container-marketing: 1536px;
-  --container-form: 720px;
-}
+  --ease-*: initial;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* lafys reveal easing */
+  --default-transition-duration: 180ms;
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 
-/* Dark: Midnight surfaces (DESIGN.md section 2, "Dark mode for the dashboard") */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-canvas: var(--palette-ink);
-    --color-surface: var(--palette-ink-elevated);
-    --color-surface-alt: var(--palette-ink-elevated);
-    --color-fg: var(--palette-canvas);
-    --color-fg-muted: var(--palette-border); /* 8.2:1 on elevated */
-    --color-fg-placeholder: var(--palette-border);
-    --color-line: var(--palette-border-dark);
-    --color-line-strong: var(--palette-text-placeholder); /* 3.7:1 on ink */
-    /* Primary button on dark: same fill plus a 1px canvas border (section 5) */
-    --color-primary-border: var(--palette-canvas);
-    --color-inverse: var(--palette-ink-elevated);
-    --color-inverse-raised: var(--palette-ink);
-    --color-eyebrow: var(
-      --palette-eyebrow-tint
-    ); /* the purple is 3.0:1 on ink */
-    --color-focus: var(--palette-accent); /* 4.1:1 on elevated */
-    --color-link: var(--palette-canvas);
-  }
+  --container-*: initial;
+  --container-marketing: 1280px;
+  --container-app: 1120px;
+  --container-form: 680px;
+  --container-sm: 384px;
+  --container-md: 448px;
+  --container-lg: 512px;
+  --container-xl: 576px;
+  --container-2xl: 672px;
 }
 
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
+}
+
+/* Public form "Paper" preset (DESIGN.md section 2). */
+[data-theme="paper"] {
+  color-scheme: light;
+  --color-canvas: #faf9fb;
+  --color-surface: #ffffff;
+  --color-surface-solid: #ffffff;
+  --color-surface-hover: #f5f3f6;
+  --color-fg: #2a222b;
+  --color-fg-muted: #655d67; /* 6.0:1 */
+  --color-fg-subtle: #655d67;
+  --color-line: #e4e1e5;
+  --color-line-strong: #837a85; /* 3.9:1 */
+  --color-accent: #2a222b;
+  --color-accent-fg: #faf9fb;
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-danger: #b91c1c;
+  --color-scrim: rgb(42 34 43 / 0.5);
 }

@@ -30,7 +30,11 @@ export function Select({
           id={selectId}
           aria-invalid={error ? true : undefined}
           aria-describedby={fieldDescribedBy(selectId, hint, error)}
-          className={cx(controlClasses, "appearance-none pr-12", className)}
+          className={cx(
+            controlClasses,
+            "min-h-12 appearance-none pr-12",
+            className,
+          )}
           {...props}
         >
           {children}

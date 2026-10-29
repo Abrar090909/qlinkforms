@@ -6,22 +6,33 @@ type EmptyStateProps = {
   /** One action only (DESIGN.md section 5). */
   action?: ReactNode;
   headingLevel?: "h2" | "h3";
+  children?: ReactNode;
 };
 
-/** Plain text on surface-alt with a single action. */
+/** Glass panel with a soft copper glow and a single action. */
 export function EmptyState({
   title,
   description,
   action,
   headingLevel: Heading = "h2",
+  children,
 }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center gap-4 rounded-card bg-surface-alt px-6 py-12 text-center">
-      <Heading className="text-xl font-semibold">{title}</Heading>
+    <div className="glass relative flex flex-col items-center gap-4 overflow-hidden rounded-panel px-6 py-14 text-center">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-24 left-1/2 size-72 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgb(222_125_77/0.25),transparent_70%)]"
+      />
+      <Heading className="relative text-2xl font-normal tracking-tight">
+        {title}
+      </Heading>
       {description && (
-        <p className="max-w-md text-base text-fg-muted">{description}</p>
+        <p className="relative max-w-md text-base text-fg-muted">
+          {description}
+        </p>
       )}
-      {action && <div className="mt-2">{action}</div>}
+      {action && <div className="relative mt-2">{action}</div>}
+      {children && <div className="relative mt-6 w-full">{children}</div>}
     </div>
   );
 }
