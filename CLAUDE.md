@@ -28,8 +28,7 @@ I'm Ahmed, building this solo. Keep explanations short and actionable. Ask befor
 ├─ .github/workflows/ci.yml
 ├─ prisma/
 │  ├─ schema.prisma
-│  └─ migrations/
-├─ supabase/                 # RLS policies as SQL migrations
+│  └─ migrations/            # Prisma SQL plus hand-written RLS, grants, triggers
 ├─ src/
 │  ├─ app/
 │  │  ├─ (marketing)/        # landing, pricing
@@ -76,12 +75,12 @@ A deployed skeleton where a user can sign up, log in, create a workspace, and se
   - `files` (submission_id, path, size, mime)
   - `audit_log` (workspace_id, actor_id, action, meta_json)
 - Indexes: submissions(form_id, created_at), payments(provider_order_id), forms(workspace_id).
-- Write RLS policies in `supabase/` so users only access workspaces they belong to. Add tests that prove isolation between two users.
+- Write RLS policies as hand-written SQL migrations in `prisma/migrations/` so users only access workspaces they belong to. Add tests that prove isolation between two users.
 
 ### C. Auth and workspaces
 - Supabase Auth with email + Google. Pages: login, signup, callback, logout.
 - On first login, create the `profiles` row and a default workspace + owner membership.
-- Middleware protects `(app)` routes. Workspace name shown in the header (a single workspace is fine for now).
+- Proxy (`src/proxy.ts`, Next 16's name for middleware) protects `(app)` routes. Workspace name shown in the header (a single workspace is fine for now).
 
 ### D. Design system
 - `src/styles/tokens.css`: color, type scale, spacing, radius, shadow tokens. Light and dark via `prefers-color-scheme`.
