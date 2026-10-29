@@ -11,6 +11,7 @@ type DialogProps = {
   children?: ReactNode;
   /** Footer actions, for example Cancel and Confirm buttons. */
   actions?: ReactNode;
+  size?: "md" | "lg";
 };
 
 /**
@@ -25,6 +26,7 @@ export function Dialog({
   description,
   children,
   actions,
+  size = "md",
 }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -50,10 +52,10 @@ export function Dialog({
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
-      className="m-auto w-[calc(100%-32px)] max-w-md rounded-panel border border-line bg-surface-solid p-0 text-fg backdrop:bg-[rgb(0_0_0/0.65)]"
+      className={`m-auto max-h-[calc(100dvh-32px)] w-[calc(100%-32px)] ${size === "lg" ? "max-w-2xl" : "max-w-md"} rounded-panel border border-line bg-surface-solid p-0 text-fg backdrop:bg-[rgb(0_0_0/0.65)]`}
     >
       <div className="flex flex-col gap-4 p-6">
-        <h2 id={titleId} className="text-xl font-semibold">
+        <h2 id={titleId} className="text-xl font-medium tracking-tight">
           {title}
         </h2>
         {description && (

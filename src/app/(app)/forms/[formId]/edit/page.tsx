@@ -1,27 +1,23 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
-import { Card } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
-import { getFormForUser } from "@/server/forms";
+import { serverEnv } from "@/lib/env";
+import { listCoupons } from "@/server/coupons";
+import { draftOf, getFormForUser } from "@/server/forms";
+import { getPaymentAccountView } from "@/server/payments/accounts";
+import { Builder } from "./builder";
 
 export const metadata: Metadata = { title: "Edit form" };
 
-// Placeholder editor. The builder arrives in a later week.
 export default function EditFormPage({
   params,
 }: PageProps<"/forms/[formId]/edit">) {
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <Link href="/dashboard" className="self-start text-sm underline">
-        ← All forms
-      </Link>
-      <Suspense fallback={<p className="text-fg-muted">Loading form…</p>}>
-        <Editor params={params} />
-      </Suspense>
-    </div>
+    <Suspense fallback={<p className="text-fg-muted">Loading editor…</p>}>
+      <Editor params={params} />
+    </Suspense>
   );
 }
 
@@ -36,22 +32,25 @@ async function Editor({
   const user = await requireUser();
   const form = await getFormForUser(user, formId);
   if (!form) notFound();
+  const [coupons, payments] = await Promise.all([
+    listCoupons(user, formId),
+    getPaymentAccountView(user, serverEnv.SITE_URL),
+  ]);
 
   return (
-    <>
-      <div className="flex flex-col gap-2">
-        <p className="text-sm font-medium tracking-wider text-eyebrow uppercase">
-          {form.status}
-        </p>
-        <h1 className="text-2xl font-semibold break-words">{form.title}</h1>
-      </div>
-      <Card className="flex flex-col gap-2">
-        <h2 className="text-lg font-semibold">Editor coming soon</h2>
-        <p className="text-fg-muted">
-          Your draft is saved. The form builder (fields, theme and publishing)
-          lands here in a later release.
-        </p>
-      </Card>
-    </>
+    <Builder
+      formId={form.id}
+      initialDraft={draftOf(form)}
+      initialUpdatedAt={form.updatedAt.toISOString()}
+      initialSlug={form.slug}
+      status={form.status}
+      publishedAt={form.publishedAt?.toISOString() ?? null}
+      siteUrl={serverEnv.SITE_URL}
+      paymentsConnected={payments.connected && payments.status === "active"}
+      coupons={(coupons ?? []).map((c) => ({
+        ...c,
+        expiresAt: c.expiresAt?.toISOString() ?? null,
+      }))}
+    />
   );
 }
