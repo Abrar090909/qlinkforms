@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useActionState } from "react";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { login } from "../actions";
+import { AuthDivider } from "../auth-divider";
 import { GoogleButton } from "../google-button";
 
 const linkErrors: Record<string, string> = {
@@ -20,42 +24,33 @@ export function LoginForm() {
 
   return (
     <div className="flex flex-col gap-6">
+      <GoogleButton next={next} />
+      <AuthDivider />
       <form action={action} className="flex flex-col gap-4">
         <input type="hidden" name="next" value={next} />
-        <label className="flex flex-col gap-1">
-          Email
-          <input
-            name="email"
-            type="email"
-            autoComplete="email"
-            inputMode="email"
-            required
-            className="rounded border px-3 py-2"
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          Password
-          <input
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            className="rounded border px-3 py-2"
-          />
-        </label>
-        {error && <p role="alert">{error}</p>}
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded border px-4 py-2"
-        >
+        <Input
+          label="Email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          inputMode="email"
+          required
+        />
+        <Input
+          label="Password"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          required
+        />
+        {error && <Alert>{error}</Alert>}
+        <Button type="submit" pending={pending} fullWidth>
           {pending ? "Logging in…" : "Log in"}
-        </button>
+        </Button>
       </form>
-      <GoogleButton next={next} />
-      <p>
+      <p className="text-sm">
         New here?{" "}
-        <Link href="/signup" className="underline">
+        <Link href="/signup" className="font-medium underline">
           Create an account
         </Link>
       </p>
