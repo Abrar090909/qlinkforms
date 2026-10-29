@@ -47,4 +47,44 @@ First-time e2e setup: `pnpm exec playwright install chromium`.
 
 ## Environment variables
 
-Documented in `.env.example`. Full deploy notes come in Week 1, group F.
+| Variable                               | Where it comes from                                                 | Local (`.env.local`)    | Vercel                                                                                                                               |
+| -------------------------------------- | ------------------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SITE_URL`                 | The app's own URL, no trailing slash. Used for auth redirect links. | `http://localhost:3000` | **Production only**: the production URL. Leave it unset for Preview: previews use their branch URL automatically (`src/lib/env.ts`). |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Supabase > Project Settings > Data API > Project URL                | yes                     | Production + Preview                                                                                                                 |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase > Project Settings > API Keys > `sb_publishable_...`       | yes                     | Production + Preview                                                                                                                 |
+| `DATABASE_URL`                         | Supabase > Connect > ORMs > Prisma, the port **6543** line (pooled) | yes                     | Production + Preview                                                                                                                 |
+| `DIRECT_URL`                           | Same screen, the port **5432** line. Migrations only.               | yes                     | Production + Preview                                                                                                                 |
+| `E2E_EMAIL`, `E2E_PASSWORD`            | A confirmed test user (see below). Signed-in e2e tests only.        | optional                | never                                                                                                                                |
+
+Everything except `NEXT_PUBLIC_*` is server-only. The app refuses to start if a required variable is missing.
+
+## End-to-end tests
+
+`pnpm e2e` starts the dev server and runs every test on a phone and a desktop viewport. The signed-in tests (`tests/e2e/app.spec.ts`) skip unless `E2E_EMAIL` and `E2E_PASSWORD` are set:
+
+1. Supabase > Authentication > Users > **Add user** > **Create new user**.
+2. Enter an email and password, tick **Auto Confirm User**, click **Create user**.
+3. Add `E2E_EMAIL=...` and `E2E_PASSWORD=...` to `.env.local`.
+
+Against a deployed URL: `E2E_BASE_URL=https://your-app.vercel.app pnpm e2e`.
+
+## CI
+
+`.github/workflows/ci.yml` runs on every pull request and every push to `main`: format check, lint, typecheck, unit tests and `prisma validate`. It needs no secrets.
+
+The `Database and RLS tests` job runs `pnpm test:db` too when the repository has `DATABASE_URL` and `DIRECT_URL` secrets (GitHub > repo > Settings > Secrets and variables > Actions). Without them it skips with a notice.
+
+## Deploy (Vercel)
+
+Pushes to `main` deploy to production; every pull request gets a preview URL. Functions run in `dub1` (`vercel.json`), next to the current Supabase project in eu-west-1. Move both to Mumbai (`bom1` and ap-south-1) when the production database is created.
+
+First-time setup:
+
+1. vercel.com > **Add New** > **Project** > import the `qlinkforms` GitHub repo. Framework: Next.js (auto-detected). Leave build settings as they are.
+2. Add the environment variables from the table above, then **Deploy**.
+3. Supabase > Authentication > URL Configuration:
+   - **Site URL**: the production URL, for example `https://qlinkforms.vercel.app`.
+   - **Redirect URLs**: add `https://qlinkforms.vercel.app/**` and, for previews, `https://qlinkforms-*-<your-vercel-team>.vercel.app/**`.
+4. Database migrations are not run by the deploy. Run `pnpm db:migrate` against the target database before merging a change that adds one.
+
+Google sign-in needs no change per deploy: Google redirects to Supabase, and Supabase redirects to the app.

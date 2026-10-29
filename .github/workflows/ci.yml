@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Lint, typecheck, unit tests, Prisma validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      # Version comes from "packageManager" in package.json.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      # postinstall runs `prisma generate`, which needs no database.
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm db:validate
+
+  # RLS and service tests against the Supabase dev database. Runs only when the
+  # DATABASE_URL and DIRECT_URL repository secrets exist, and never for PRs from
+  # forks (they don't get secrets).
+  db:
+    name: Database and RLS tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: check
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+      # src/lib/env.ts validates these on import; DB tests never call Supabase.
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: unused-in-db-tests
+    steps:
+      - id: secrets
+        run: |
+          if [ -n "$DIRECT_URL" ] && [ -n "$DATABASE_URL" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::DATABASE_URL / DIRECT_URL secrets not set, skipping database tests."
+          fi
+      - if: steps.secrets.outputs.present == 'true'
+        uses: actions/checkout@v5
+      - if: steps.secrets.outputs.present == 'true'
+        uses: pnpm/action-setup@v4
+      - if: steps.secrets.outputs.present == 'true'
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - if: steps.secrets.outputs.present == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.secrets.outputs.present == 'true'
+        run: pnpm test:db
