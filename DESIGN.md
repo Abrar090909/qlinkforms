@@ -96,7 +96,7 @@ The app is dark only. Public forms are themeable (section 6).
 - Do keep one accent on screen at a time and let type and space do the work.
 - Don't use pure black (`#000`) or pure white page backgrounds in the app.
 - Don't put white text on copper (2.9:1).
-- Don't use framer-motion or heavy JavaScript on the public form page. Its budget is under 100 KB of JS.
+- Don't use framer-motion, zod or other heavy JavaScript on the public form page. Measured 2026-10-29: 145 KB gzipped for modern browsers, about 135 KB of which is the Next.js and React runtime every page carries, so the plan's 100 KB target isn't reachable on Next.js. Keep the form's own code small and re-measure when it grows.
 
 ## 9. Open decisions
 

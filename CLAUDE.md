@@ -50,6 +50,9 @@ I'm Ahmed, building this solo. Keep explanations short and actionable. Ask befor
 └─ .env.example
 ```
 
+## Status (2026-10-29)
+Week 1 is done and the MVP from `docs/technical-plan.md` section 4 is built: builder, public forms, Razorpay (bring your own keys), coupons, responses and CSV, templates, emails. See README "What is built" for the list and what is not built yet. Ahmed asked to stop working in phases, so later work doesn't need to wait for an OK between groups; still ask before major dependencies or architecture changes.
+
 ## Week 1 goal
 A deployed skeleton where a user can sign up, log in, create a workspace, and see an empty dashboard. DB schema and RLS in place, design tokens set, CI green.
 
@@ -85,7 +88,7 @@ A deployed skeleton where a user can sign up, log in, create a workspace, and se
 ### D. Design system
 - `src/styles/tokens.css`: color, type scale, spacing, radius, shadow tokens. Light and dark via `prefers-color-scheme`.
 - Primitives in `components/ui`: Button, Input, Select, Card, Dialog, Toast, EmptyState. Mobile-first, keyboard accessible, WCAG AA contrast.
-- Follow `DESIGN.md` in the repo root for all colors, fonts, radii and components. Do not invent design values from memory; if something is missing from `DESIGN.md`, ask me. Take patterns from Typeform, Jotform and Paperform, never their assets, copy or proprietary fonts.
+- Follow `DESIGN.md` in the repo root for all colors, fonts, radii and components. Do not invent design values from memory; if something is missing from `DESIGN.md`, ask me. Take patterns from Typeform, Jotform and Paperform, never their assets, copy or proprietary fonts. Since 2026-10-29 the visual style is the dark "Midnight" system in `DESIGN.md` v2, inspired by lafys.com: take its style only, never its prompt code, copy or images.
 
 ### E. App shell
 - Marketing landing placeholder, authenticated dashboard with an empty state ("Create your first form"), and a "New form" button that creates a draft form and routes to a placeholder editor page.

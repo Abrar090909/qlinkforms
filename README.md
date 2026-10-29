@@ -49,14 +49,17 @@ First-time e2e setup: `pnpm exec playwright install chromium`.
 
 All variables are server-only (none has a `NEXT_PUBLIC_` prefix), so nothing is bundled into the browser. The app refuses to start if a required one is missing.
 
-| Variable                    | Where it comes from                                                                                                                                                                                                                               |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SITE_URL`                  | The app's own URL, no trailing slash, for auth redirect links. `http://localhost:3000` locally. **Don't set it on Vercel**: production uses the project's production domain and previews their branch URL (`resolveSiteUrl` in `src/lib/env.ts`). |
-| `SUPABASE_URL`              | Supabase > Project Settings > Data API > Project URL                                                                                                                                                                                              |
-| `SUPABASE_PUBLISHABLE_KEY`  | Supabase > Project Settings > API Keys > `sb_publishable_...`                                                                                                                                                                                     |
-| `DATABASE_URL`              | Supabase > Connect > ORMs > Prisma, the port **6543** line (pooled)                                                                                                                                                                               |
-| `DIRECT_URL`                | Same screen, the port **5432** line. Used by migrations.                                                                                                                                                                                          |
-| `E2E_EMAIL`, `E2E_PASSWORD` | Optional, local only: a confirmed test user for the signed-in e2e tests (see below).                                                                                                                                                              |
+| Variable                       | Where it comes from                                                                                                                                                                                                                                                                |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SITE_URL`                     | The app's own URL, no trailing slash, for auth redirect links. `http://localhost:3000` locally. **Don't set it on Vercel**: production uses the project's production domain and previews their branch URL (`resolveSiteUrl` in `src/lib/env.ts`).                                  |
+| `SUPABASE_URL`                 | Supabase > Project Settings > Data API > Project URL                                                                                                                                                                                                                               |
+| `SUPABASE_PUBLISHABLE_KEY`     | Supabase > Project Settings > API Keys > `sb_publishable_...`                                                                                                                                                                                                                      |
+| `DATABASE_URL`                 | Supabase > Connect > ORMs > Prisma, the port **6543** line (pooled)                                                                                                                                                                                                                |
+| `DIRECT_URL`                   | Same screen, the port **5432** line. Used by migrations.                                                                                                                                                                                                                           |
+| `PAYMENT_SECRETS_KEY`          | Optional, but required to connect Razorpay. 32 random bytes, base64 (command in `.env.example`). Encrypts owners' Razorpay secrets. **Use the same value in `.env.local` and on Vercel** while they share a database. Losing or changing it means owners must re-enter their keys. |
+| `RESEND_API_KEY`, `EMAIL_FROM` | Optional. Receipts to payers and a "new response" email to owners. Emails are skipped when unset. `EMAIL_FROM` must be on a domain verified in Resend.                                                                                                                             |
+| `CRON_SECRET`                  | Optional. At least 16 characters. Protects the daily payment reconciliation job (`/api/cron/reconcile`).                                                                                                                                                                           |
+| `E2E_EMAIL`, `E2E_PASSWORD`    | Optional, local only: a confirmed test user for the signed-in e2e tests (see below).                                                                                                                                                                                               |
 
 ## End-to-end tests
 
@@ -81,10 +84,35 @@ Pushes to `main` deploy to production; every pull request gets a preview URL. Fu
 First-time setup:
 
 1. vercel.com > **Add New** > **Project** > import the `qlinkforms` GitHub repo. Framework: Next.js (auto-detected). Leave build settings as they are.
-2. Add `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `DATABASE_URL` and `DIRECT_URL` in one go: Settings > Environment Variables, paste the four lines from `.env.local`, environments **Production** and **Preview**, mark them **Sensitive**, Save. Then redeploy.
+2. Add `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `DATABASE_URL`, `DIRECT_URL` and `PAYMENT_SECRETS_KEY` in one go (plus `CRON_SECRET` and `RESEND_API_KEY` if you use them): Settings > Environment Variables, paste the lines from `.env.local`, environments **Production** and **Preview**, mark them **Sensitive**, Save. Then redeploy.
 3. Supabase > Authentication > URL Configuration:
    - **Site URL**: the production URL, for example `https://qlinkforms.vercel.app`.
    - **Redirect URLs**: add `https://qlinkforms.vercel.app/**` and, for previews, `https://qlinkforms-*-<your-vercel-team>.vercel.app/**`.
 4. Database migrations are not run by the deploy. Run `pnpm db:migrate` against the target database before merging a change that adds one.
 
 Google sign-in needs no change per deploy: Google redirects to Supabase, and Supabase redirects to the app.
+
+The cron in `vercel.json` runs reconciliation once a day (the most the Hobby plan allows). Payments are also settled by the Razorpay webhook and re-checked whenever a respondent's receipt page loads, so the daily run is only a safety net.
+
+## Payments (Razorpay, bring your own keys)
+
+Each workspace connects its own Razorpay account in **Settings**. Money settles directly to the owner; this app never holds funds.
+
+1. Razorpay dashboard > Account & Settings > API Keys > **Generate Key** (start in **Test mode**).
+2. In the app: Settings > Payments, paste the Key ID and Key Secret, copy the suggested webhook secret, click **Check & save keys**. The keys are verified with Razorpay before they are saved, and the secret is stored AES-256-GCM encrypted.
+3. Razorpay > Webhooks > **Add New Webhook**: paste the webhook URL shown in Settings, the webhook secret, and tick `payment.captured`, `payment.failed` and `order.paid`.
+4. Add a payment block to a form, publish, and pay with a [Razorpay test card or UPI ID](https://razorpay.com/docs/payments/payments/test-card-upi-details/).
+
+How a payment flows: the server validates answers against the published form version, computes the amount from the stored schema (never the browser), creates the submission and a Razorpay order, and opens Checkout. A payment is marked paid exactly once, whichever arrives first: the Checkout callback (signature-verified), the webhook (signature-verified, deduplicated by event id) or reconciliation. Code: `src/server/submissions.ts`.
+
+## What is built
+
+- Auth (email and Google), a workspace per user, Row Level Security on every table.
+- Builder (`/forms/[id]/edit`): document-style canvas, `/` menu, drag or keyboard reordering, live phone preview, autosave with conflict detection, themes (Midnight, Paper, custom accent), thank-you text, close form, custom link, publish with link, QR code and WhatsApp share.
+- Fields: short and long text, email, phone (Indian numbers normalised), number, date, dropdown, single and multiple choice, rating, text/heading, payment. Show-when conditions on any field.
+- Payments: fixed price, items with quantities, ticket tiers, pay-what-you-want, coupons (percent or fixed, max uses, expiry).
+- Public form (`/f/[slug]`) with order summary, Razorpay Checkout, receipt page that re-checks pending UPI payments.
+- Responses (`/forms/[id]/responses`): status filters, search, details, CSV export (formula-injection safe), delete unpaid responses.
+- 10 templates, dashboard with totals, owner and payer emails (with Resend).
+
+Not built yet (see `docs/technical-plan.md`): file upload fields (need a Supabase Storage bucket and a server key), team members, refunds from the dashboard, GST invoices, WhatsApp notifications, embeds, other gateways.
