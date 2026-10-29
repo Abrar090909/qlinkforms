@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { clientEnvSchema, parseEnv, serverEnvSchema } from "@/lib/env";
+import {
+  clientEnvSchema,
+  parseEnv,
+  resolveSiteUrl,
+  serverEnvSchema,
+} from "@/lib/env";
 
 const valid = {
   NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
@@ -52,5 +57,31 @@ describe("parseEnv", () => {
   it("strips server-only vars from the client schema", () => {
     const env = parseEnv(clientEnvSchema, valid);
     expect(env).not.toHaveProperty("DATABASE_URL");
+  });
+});
+
+describe("resolveSiteUrl", () => {
+  const preview = {
+    NEXT_PUBLIC_VERCEL_ENV: "preview",
+    NEXT_PUBLIC_VERCEL_BRANCH_URL: "qlinkforms-git-feat-x-team.vercel.app",
+  };
+
+  it("prefers an explicit NEXT_PUBLIC_SITE_URL", () => {
+    expect(
+      resolveSiteUrl({ ...preview, NEXT_PUBLIC_SITE_URL: "https://a.in" }),
+    ).toBe("https://a.in");
+  });
+
+  it("falls back to the branch URL on a Vercel preview", () => {
+    expect(resolveSiteUrl(preview)).toBe(
+      "https://qlinkforms-git-feat-x-team.vercel.app",
+    );
+  });
+
+  it("never guesses outside previews", () => {
+    expect(
+      resolveSiteUrl({ ...preview, NEXT_PUBLIC_VERCEL_ENV: "production" }),
+    ).toBeUndefined();
+    expect(resolveSiteUrl({})).toBeUndefined();
   });
 });

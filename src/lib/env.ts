@@ -42,11 +42,32 @@ export function parseEnv<S extends z.ZodType>(
   return result.data;
 }
 
+/**
+ * NEXT_PUBLIC_SITE_URL, or on a Vercel preview without it, the preview's
+ * stable branch URL, so auth links come back to the preview instead of
+ * production. The NEXT_PUBLIC_VERCEL_* values are set by Vercel at build time.
+ */
+export function resolveSiteUrl(source: Record<string, string | undefined>) {
+  if (source.NEXT_PUBLIC_SITE_URL) return source.NEXT_PUBLIC_SITE_URL;
+  const branchUrl = source.NEXT_PUBLIC_VERCEL_BRANCH_URL;
+  if (source.NEXT_PUBLIC_VERCEL_ENV === "preview" && branchUrl) {
+    return `https://${branchUrl}`;
+  }
+  return undefined;
+}
+
+// Each NEXT_PUBLIC_* var must be referenced literally so Next.js can inline it.
+const siteUrl = resolveSiteUrl({
+  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV,
+  NEXT_PUBLIC_VERCEL_BRANCH_URL: process.env.NEXT_PUBLIC_VERCEL_BRANCH_URL,
+});
+
 const isServer = typeof window === "undefined";
 
 // Parsed first so a server boot reports every missing variable in one error.
 export const serverEnv: ServerEnv = isServer
-  ? parseEnv(serverEnvSchema, process.env)
+  ? parseEnv(serverEnvSchema, { ...process.env, NEXT_PUBLIC_SITE_URL: siteUrl })
   : new Proxy({} as ServerEnv, {
       get(_, key) {
         throw new Error(
@@ -55,9 +76,8 @@ export const serverEnv: ServerEnv = isServer
       },
     });
 
-// Each NEXT_PUBLIC_* var must be referenced literally so Next.js can inline it.
 export const clientEnv: ClientEnv = parseEnv(clientEnvSchema, {
-  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  NEXT_PUBLIC_SITE_URL: siteUrl,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
