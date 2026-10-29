@@ -86,6 +86,8 @@
   --container-lg: 512px;
   --container-xl: 576px;
   --container-2xl: 672px;
+  --container-3xl: 768px;
+  --container-4xl: 896px;
 }
 
 :root {
