@@ -1,0 +1,282 @@
+// Database schema. Tables and columns are snake_case in Postgres; Prisma models
+// and fields are PascalCase/camelCase in TypeScript via @@map / @map.
+//
+// Row Level Security policies live in hand-written SQL migrations (see
+// prisma/migrations/*_rls). Prisma connects as the table owner, which bypasses
+// RLS, so service-layer queries must always scope by workspace themselves.
+//
+// Money is always integer paise in *_minor columns. Never floats.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum MembershipRole {
+  owner
+  admin
+  member
+
+  @@map("membership_role")
+}
+
+enum FormStatus {
+  draft
+  published
+  archived
+
+  @@map("form_status")
+}
+
+enum SubmissionStatus {
+  completed // free form, nothing to pay
+  pending_payment
+  paid
+  payment_failed
+
+  @@map("submission_status")
+}
+
+enum PaymentProvider {
+  razorpay
+
+  @@map("payment_provider")
+}
+
+enum PaymentStatus {
+  created
+  authorized
+  captured
+  failed
+  refunded
+
+  @@map("payment_status")
+}
+
+enum PaymentAccountStatus {
+  active
+  invalid
+  disabled
+
+  @@map("payment_account_status")
+}
+
+enum CouponType {
+  percent // value is basis points: 1000 = 10%
+  fixed // value is paise
+
+  @@map("coupon_type")
+}
+
+/// One row per Supabase auth user. id equals auth.users.id.
+model Profile {
+  id        String   @id @db.Uuid
+  email     String
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  ownedWorkspaces Workspace[]
+  memberships     Membership[]
+  auditLogs       AuditLog[]
+
+  @@map("profiles")
+}
+
+model Workspace {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  name      String
+  plan      String   @default("free")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  owner           Profile          @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  memberships     Membership[]
+  forms           Form[]
+  paymentAccounts PaymentAccount[]
+  auditLogs       AuditLog[]
+
+  @@index([ownerId])
+  @@map("workspaces")
+}
+
+model Membership {
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId String         @map("workspace_id") @db.Uuid
+  userId      String         @map("user_id") @db.Uuid
+  role        MembershipRole @default(member)
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+  @@map("memberships")
+}
+
+model Form {
+  id               String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId      String     @map("workspace_id") @db.Uuid
+  slug             String     @unique
+  title            String
+  status           FormStatus @default(draft)
+  currentVersionId String?    @unique @map("current_version_id") @db.Uuid
+  // No themes table yet. Becomes a foreign key when themes ship.
+  themeId          String?    @map("theme_id") @db.Uuid
+  createdAt        DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  workspace      Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  currentVersion FormVersion?  @relation("FormCurrentVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  versions       FormVersion[] @relation("FormVersions")
+  submissions    Submission[]
+  coupons        Coupon[]
+
+  @@index([workspaceId])
+  @@map("forms")
+}
+
+/// Immutable snapshot of a form's schema. A trigger rejects UPDATEs.
+model FormVersion {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  formId     String   @map("form_id") @db.Uuid
+  schemaJson Json     @map("schema_json")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  form          Form         @relation("FormVersions", fields: [formId], references: [id], onDelete: Cascade)
+  currentOfForm Form?        @relation("FormCurrentVersion")
+  submissions   Submission[]
+
+  // Target for submissions' composite FK, so a submission can only reference
+  // a version of its own form.
+  @@unique([id, formId])
+  @@index([formId])
+  @@map("form_versions")
+}
+
+model Submission {
+  id            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  formId        String           @map("form_id") @db.Uuid
+  formVersionId String           @map("form_version_id") @db.Uuid
+  answersJson   Json             @map("answers_json")
+  status        SubmissionStatus @default(completed)
+  amountMinor   Int              @default(0) @map("amount_minor")
+  currency      String           @default("INR") @db.Char(3)
+  createdAt     DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  form        Form        @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formVersion FormVersion @relation(fields: [formVersionId, formId], references: [id, formId], onDelete: NoAction)
+  payments    Payment[]
+  files       File[]
+
+  @@index([formId, createdAt])
+  @@index([formVersionId])
+  @@map("submissions")
+}
+
+model Payment {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  submissionId      String          @map("submission_id") @db.Uuid
+  provider          PaymentProvider
+  providerOrderId   String          @map("provider_order_id")
+  providerPaymentId String?         @unique @map("provider_payment_id")
+  status            PaymentStatus   @default(created)
+  amountMinor       Int             @map("amount_minor")
+  feeMinor          Int?            @map("fee_minor")
+  rawJson           Json?           @map("raw_json")
+  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Restrict)
+
+  @@index([providerOrderId])
+  @@index([submissionId])
+  @@map("payments")
+}
+
+/// Bring-your-own Razorpay keys. Secrets are encrypted by the app before insert
+/// and are never readable by the anon/authenticated roles (column grants).
+model PaymentAccount {
+  id                     String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId            String               @map("workspace_id") @db.Uuid
+  provider               PaymentProvider
+  keyId                  String               @map("key_id")
+  secretEncrypted        String               @map("secret_encrypted")
+  webhookSecretEncrypted String?              @map("webhook_secret_encrypted")
+  status                 PaymentAccountStatus @default(active)
+  createdAt              DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, provider])
+  @@map("payment_accounts")
+}
+
+/// Raw provider webhooks, deduplicated by event_id. Server-only, no client access.
+model WebhookEvent {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider    PaymentProvider
+  eventId     String          @unique @map("event_id")
+  payloadJson Json            @map("payload_json")
+  processedAt DateTime?       @map("processed_at") @db.Timestamptz(6)
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("webhook_events")
+}
+
+model Coupon {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  formId    String     @map("form_id") @db.Uuid
+  code      String
+  type      CouponType
+  value     Int
+  maxUses   Int?       @map("max_uses")
+  used      Int        @default(0)
+  expiresAt DateTime?  @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  form Form @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@unique([formId, code])
+  @@map("coupons")
+}
+
+model File {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  submissionId String   @map("submission_id") @db.Uuid
+  path         String
+  size         Int
+  mime         String
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+  @@map("files")
+}
+
+/// Append-only. A trigger rejects UPDATEs.
+model AuditLog {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  actorId     String?  @map("actor_id") @db.Uuid
+  action      String
+  metaJson    Json?    @map("meta_json")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actor     Profile?  @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, createdAt])
+  @@map("audit_log")
+}
