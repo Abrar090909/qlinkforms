@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { toSessionUser } from "@/lib/auth";
-import { clientEnv } from "@/lib/env";
+import { serverEnv } from "@/lib/env";
 import { safeNextPath } from "@/lib/routes";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loginSchema, signupSchema } from "@/lib/validation/auth";
@@ -10,7 +10,7 @@ import { ensureUserSetup } from "@/server/workspaces";
 
 export type AuthFormState = { error?: string; message?: string } | undefined;
 
-const siteUrl = clientEnv.NEXT_PUBLIC_SITE_URL;
+const siteUrl = serverEnv.SITE_URL;
 
 export async function login(
   _prev: AuthFormState,

@@ -47,16 +47,16 @@ First-time e2e setup: `pnpm exec playwright install chromium`.
 
 ## Environment variables
 
-| Variable                               | Where it comes from                                                 | Local (`.env.local`)    | Vercel                                                                                                                               |
-| -------------------------------------- | ------------------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_SITE_URL`                 | The app's own URL, no trailing slash. Used for auth redirect links. | `http://localhost:3000` | **Production only**: the production URL. Leave it unset for Preview: previews use their branch URL automatically (`src/lib/env.ts`). |
-| `NEXT_PUBLIC_SUPABASE_URL`             | Supabase > Project Settings > Data API > Project URL                | yes                     | Production + Preview                                                                                                                 |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase > Project Settings > API Keys > `sb_publishable_...`       | yes                     | Production + Preview                                                                                                                 |
-| `DATABASE_URL`                         | Supabase > Connect > ORMs > Prisma, the port **6543** line (pooled) | yes                     | Production + Preview                                                                                                                 |
-| `DIRECT_URL`                           | Same screen, the port **5432** line. Migrations only.               | yes                     | Production + Preview                                                                                                                 |
-| `E2E_EMAIL`, `E2E_PASSWORD`            | A confirmed test user (see below). Signed-in e2e tests only.        | optional                | never                                                                                                                                |
+All variables are server-only (none has a `NEXT_PUBLIC_` prefix), so nothing is bundled into the browser. The app refuses to start if a required one is missing.
 
-Everything except `NEXT_PUBLIC_*` is server-only. The app refuses to start if a required variable is missing.
+| Variable                    | Where it comes from                                                                                                                                                                                                                               |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SITE_URL`                  | The app's own URL, no trailing slash, for auth redirect links. `http://localhost:3000` locally. **Don't set it on Vercel**: production uses the project's production domain and previews their branch URL (`resolveSiteUrl` in `src/lib/env.ts`). |
+| `SUPABASE_URL`              | Supabase > Project Settings > Data API > Project URL                                                                                                                                                                                              |
+| `SUPABASE_PUBLISHABLE_KEY`  | Supabase > Project Settings > API Keys > `sb_publishable_...`                                                                                                                                                                                     |
+| `DATABASE_URL`              | Supabase > Connect > ORMs > Prisma, the port **6543** line (pooled)                                                                                                                                                                               |
+| `DIRECT_URL`                | Same screen, the port **5432** line. Used by migrations.                                                                                                                                                                                          |
+| `E2E_EMAIL`, `E2E_PASSWORD` | Optional, local only: a confirmed test user for the signed-in e2e tests (see below).                                                                                                                                                              |
 
 ## End-to-end tests
 
@@ -81,7 +81,7 @@ Pushes to `main` deploy to production; every pull request gets a preview URL. Fu
 First-time setup:
 
 1. vercel.com > **Add New** > **Project** > import the `qlinkforms` GitHub repo. Framework: Next.js (auto-detected). Leave build settings as they are.
-2. Add the environment variables from the table above, then **Deploy**.
+2. Add `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `DATABASE_URL` and `DIRECT_URL` in one go: Settings > Environment Variables, paste the four lines from `.env.local`, environments **Production** and **Preview**, mark them **Sensitive**, Save. Then redeploy.
 3. Supabase > Authentication > URL Configuration:
    - **Site URL**: the production URL, for example `https://qlinkforms.vercel.app`.
    - **Redirect URLs**: add `https://qlinkforms.vercel.app/**` and, for previews, `https://qlinkforms-*-<your-vercel-team>.vercel.app/**`.

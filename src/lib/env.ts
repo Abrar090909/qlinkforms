@@ -1,21 +1,22 @@
 import { z } from "zod";
 
-// Variables safe to ship to the browser. Next.js inlines NEXT_PUBLIC_* at build time.
-export const clientEnvSchema = z.object({
-  NEXT_PUBLIC_SITE_URL: z.url(),
-  NEXT_PUBLIC_SUPABASE_URL: z.url(),
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
-});
-
-// Server-only variables. Never import these into client components.
-export const serverEnvSchema = clientEnvSchema.extend({
+// All variables are server-only. Nothing here is inlined into the browser
+// bundle: Supabase is only called from server code (proxy, server actions,
+// route handlers), so there is no NEXT_PUBLIC_* variable to manage. On Vercel
+// every variable can be added as Sensitive in one batch.
+export const serverEnvSchema = z.object({
+  // The app's own URL, for auth redirect links. Optional on Vercel, where it
+  // is derived from the deployment (see resolveSiteUrl).
+  SITE_URL: z.url(),
+  SUPABASE_URL: z.url(),
+  // Publishable (formerly "anon") key. Safe to expose, but kept server-side.
+  SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
   // Pooled connection (Supabase pooler) used by the app at runtime.
   DATABASE_URL: z.url(),
   // Direct connection used by Prisma migrations.
   DIRECT_URL: z.url(),
 });
 
-export type ClientEnv = z.infer<typeof clientEnvSchema>;
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
 /**
@@ -43,31 +44,28 @@ export function parseEnv<S extends z.ZodType>(
 }
 
 /**
- * NEXT_PUBLIC_SITE_URL, or on a Vercel preview without it, the preview's
- * stable branch URL, so auth links come back to the preview instead of
- * production. The NEXT_PUBLIC_VERCEL_* values are set by Vercel at build time.
+ * SITE_URL if set. Otherwise, on Vercel, the production domain in production
+ * and the stable branch URL on previews, so auth links always come back to the
+ * deployment that sent them. VERCEL_* are Vercel system variables.
  */
 export function resolveSiteUrl(source: Record<string, string | undefined>) {
-  if (source.NEXT_PUBLIC_SITE_URL) return source.NEXT_PUBLIC_SITE_URL;
-  const branchUrl = source.NEXT_PUBLIC_VERCEL_BRANCH_URL;
-  if (source.NEXT_PUBLIC_VERCEL_ENV === "preview" && branchUrl) {
-    return `https://${branchUrl}`;
-  }
-  return undefined;
+  if (source.SITE_URL) return source.SITE_URL;
+  const host =
+    source.VERCEL_ENV === "production"
+      ? source.VERCEL_PROJECT_PRODUCTION_URL
+      : source.VERCEL_ENV === "preview"
+        ? source.VERCEL_BRANCH_URL
+        : undefined;
+  return host ? `https://${host}` : undefined;
 }
-
-// Each NEXT_PUBLIC_* var must be referenced literally so Next.js can inline it.
-const siteUrl = resolveSiteUrl({
-  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
-  NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV,
-  NEXT_PUBLIC_VERCEL_BRANCH_URL: process.env.NEXT_PUBLIC_VERCEL_BRANCH_URL,
-});
 
 const isServer = typeof window === "undefined";
 
-// Parsed first so a server boot reports every missing variable in one error.
 export const serverEnv: ServerEnv = isServer
-  ? parseEnv(serverEnvSchema, { ...process.env, NEXT_PUBLIC_SITE_URL: siteUrl })
+  ? parseEnv(serverEnvSchema, {
+      ...process.env,
+      SITE_URL: resolveSiteUrl(process.env),
+    })
   : new Proxy({} as ServerEnv, {
       get(_, key) {
         throw new Error(
@@ -75,10 +73,3 @@ export const serverEnv: ServerEnv = isServer
         );
       },
     });
-
-export const clientEnv: ClientEnv = parseEnv(clientEnvSchema, {
-  NEXT_PUBLIC_SITE_URL: siteUrl,
-  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-});

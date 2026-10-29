@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
-import { clientEnv } from "@/lib/env";
+import { serverEnv } from "@/lib/env";
 import { DEFAULT_AFTER_LOGIN, isAuthPage, isProtectedPath } from "@/lib/routes";
 
 // Runs before every page request: refreshes the Supabase session cookie and
@@ -9,8 +9,8 @@ export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
-    clientEnv.NEXT_PUBLIC_SUPABASE_URL,
-    clientEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    serverEnv.SUPABASE_URL,
+    serverEnv.SUPABASE_PUBLISHABLE_KEY,
     {
       cookies: {
         getAll: () => request.cookies.getAll(),
