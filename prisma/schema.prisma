@@ -130,6 +130,9 @@ model Form {
   currentVersionId String?    @unique @map("current_version_id") @db.Uuid
   // No themes table yet. Becomes a foreign key when themes ship.
   themeId          String?    @map("theme_id") @db.Uuid
+  /// Builder draft (FormSchema). Publishing snapshots it into form_versions.
+  draftJson        Json       @default("{}") @map("draft_json")
+  publishedAt      DateTime?  @map("published_at") @db.Timestamptz(6)
   createdAt        DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -162,15 +165,18 @@ model FormVersion {
 }
 
 model Submission {
-  id            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  formId        String           @map("form_id") @db.Uuid
-  formVersionId String           @map("form_version_id") @db.Uuid
-  answersJson   Json             @map("answers_json")
-  status        SubmissionStatus @default(completed)
-  amountMinor   Int              @default(0) @map("amount_minor")
-  currency      String           @default("INR") @db.Char(3)
-  createdAt     DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  formId          String           @map("form_id") @db.Uuid
+  formVersionId   String           @map("form_version_id") @db.Uuid
+  answersJson     Json             @map("answers_json")
+  status          SubmissionStatus @default(completed)
+  amountMinor     Int              @default(0) @map("amount_minor")
+  currency        String           @default("INR") @db.Char(3)
+  /// PriceBreakdown frozen at submit time.
+  pricingJson     Json?            @map("pricing_json")
+  respondentEmail String?          @map("respondent_email")
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   form        Form        @relation(fields: [formId], references: [id], onDelete: Cascade)
   formVersion FormVersion @relation(fields: [formVersionId, formId], references: [id, formId], onDelete: NoAction)
@@ -186,7 +192,7 @@ model Payment {
   id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   submissionId      String          @map("submission_id") @db.Uuid
   provider          PaymentProvider
-  providerOrderId   String          @map("provider_order_id")
+  providerOrderId   String          @unique @map("provider_order_id")
   providerPaymentId String?         @unique @map("provider_payment_id")
   status            PaymentStatus   @default(created)
   amountMinor       Int             @map("amount_minor")
@@ -197,7 +203,6 @@ model Payment {
 
   submission Submission @relation(fields: [submissionId], references: [id], onDelete: Restrict)
 
-  @@index([providerOrderId])
   @@index([submissionId])
   @@map("payments")
 }
@@ -279,4 +284,13 @@ model AuditLog {
 
   @@index([workspaceId, createdAt])
   @@map("audit_log")
+}
+
+/// Fixed-window counters for public endpoints. Server-only (no grants).
+model RateLimit {
+  key         String   @id
+  windowStart DateTime @map("window_start") @db.Timestamptz(6)
+  count       Int      @default(0)
+
+  @@map("rate_limits")
 }

@@ -15,6 +15,22 @@ export const serverEnvSchema = z.object({
   DATABASE_URL: z.url(),
   // Direct connection used by Prisma migrations.
   DIRECT_URL: z.url(),
+
+  // Optional features. The app runs without them and says what's missing.
+  // 32 random bytes, base64. Encrypts owners' Razorpay secrets at rest.
+  // Without it, owners can't connect Razorpay. Generate: see README.
+  PAYMENT_SECRETS_KEY: z
+    .string()
+    .refine(
+      (v) => Buffer.from(v, "base64").length === 32,
+      "must be 32 bytes, base64",
+    )
+    .optional(),
+  // Resend API key for receipts and owner notifications. Without it, no email.
+  RESEND_API_KEY: z.string().min(1).optional(),
+  EMAIL_FROM: z.string().min(3).default("UPI Forms <onboarding@resend.dev>"),
+  // Shared secret for the reconciliation cron (Vercel sends it as a Bearer token).
+  CRON_SECRET: z.string().min(16).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
