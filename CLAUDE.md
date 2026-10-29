@@ -9,7 +9,7 @@ I'm Ahmed, building this solo. Keep explanations short and actionable. Ask befor
 - Postgres on Supabase (Mumbai region), Prisma ORM, Supabase Auth (email + Google)
 - zod for validation (shared client/server), Vitest for unit tests, Playwright for e2e
 - pnpm, current Node LTS, GitHub Actions for CI
-- Dev environment: Windows + WSL2. Keep the repo inside the Linux filesystem (not /mnt/c). Docker Postgres is fine for local dev.
+- Dev environment: native Windows (no WSL, no Docker). Repo lives at `C:\dev\qlinkforms`, outside OneDrive. Local dev uses a Supabase cloud dev project as the database.
 
 ## Non-negotiable rules
 1. Money is stored as integer paise (`amount_minor`). Never use floats for money.

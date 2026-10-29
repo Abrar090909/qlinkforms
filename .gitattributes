@@ -1,0 +1,5 @@
+# Keep LF everywhere so Windows checkouts match Prettier and CI (Linux).
+* text=auto eol=lf
+*.ico binary
+*.png binary
+*.jpg binary
