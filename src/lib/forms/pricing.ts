@@ -1,19 +1,63 @@
-import { z } from "zod";
 import { MAX_CHARGE_MINOR, MIN_CHARGE_MINOR } from "@/lib/money";
 import type { BlockOf } from "./schema";
 
 // The pricing engine. Pure and integer-only, so the browser can show a live
 // total while the server recomputes the real amount from the same code and the
 // stored schema (CLAUDE.md rule 2: never trust a client amount).
+// Deliberately zod-free: this module ships in the public form bundle.
 
 /** What the respondent picked in a payment block. */
-export const paymentAnswerSchema = z.object({
-  items: z.record(z.string(), z.number().int().min(0).max(1000)).optional(),
-  tierId: z.string().max(16).optional(),
-  amountMinor: z.number().int().min(0).max(MAX_CHARGE_MINOR).optional(),
-  couponCode: z.string().trim().max(40).optional(),
-});
-export type PaymentAnswer = z.infer<typeof paymentAnswerSchema>;
+export type PaymentAnswer = {
+  items?: Record<string, number>;
+  tierId?: string;
+  amountMinor?: number;
+  couponCode?: string;
+};
+
+const isInt = (v: unknown, min: number, max: number): v is number =>
+  Number.isSafeInteger(v) && (v as number) >= min && (v as number) <= max;
+
+/**
+ * Validate an untrusted payment answer. Returns null when anything is the
+ * wrong shape; unknown keys are dropped. Empty input is an empty answer.
+ */
+export function parsePaymentAnswer(raw: unknown): PaymentAnswer | null {
+  if (raw === undefined || raw === null) return {};
+  if (typeof raw !== "object" || Array.isArray(raw)) return null;
+  const r = raw as Record<string, unknown>;
+  const out: PaymentAnswer = {};
+  if (r.items !== undefined) {
+    if (
+      typeof r.items !== "object" ||
+      r.items === null ||
+      Array.isArray(r.items)
+    )
+      return null;
+    const entries = Object.entries(r.items as Record<string, unknown>);
+    if (entries.length > 50) return null;
+    const items: Record<string, number> = {};
+    for (const [id, quantity] of entries) {
+      if (id.length > 16 || !isInt(quantity, 0, 1000)) return null;
+      items[id] = quantity;
+    }
+    out.items = items;
+  }
+  if (r.tierId !== undefined) {
+    if (typeof r.tierId !== "string" || r.tierId.length > 16) return null;
+    out.tierId = r.tierId;
+  }
+  if (r.amountMinor !== undefined) {
+    if (!isInt(r.amountMinor, 0, MAX_CHARGE_MINOR)) return null;
+    out.amountMinor = r.amountMinor;
+  }
+  if (r.couponCode !== undefined) {
+    if (typeof r.couponCode !== "string") return null;
+    const code = r.couponCode.trim();
+    if (code.length > 40) return null;
+    if (code) out.couponCode = code;
+  }
+  return out;
+}
 
 /** A coupon the server has already found valid for this form. */
 export type AppliedCoupon = {

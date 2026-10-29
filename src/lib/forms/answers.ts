@@ -1,4 +1,4 @@
-import { type PaymentAnswer, paymentAnswerSchema } from "./pricing";
+import { type PaymentAnswer, parsePaymentAnswer } from "./pricing";
 import type { Block, FormSchema, VisibilityRule } from "./schema";
 
 // Answer validation and conditional visibility. Shared by the public form (live
@@ -92,10 +92,7 @@ export function checkAnswer(block: Block, raw: unknown): Check {
   if (block.type === "statement") return { ok: true, value: undefined };
   // A fixed price has nothing to pick: it applies whenever the block is shown.
   if (block.type === "payment" && block.pricing.mode === "fixed") {
-    const parsed = paymentAnswerSchema.safeParse(raw ?? {});
-    return parsed.success
-      ? { ok: true, value: parsed.data }
-      : { ok: true, value: {} };
+    return { ok: true, value: parsePaymentAnswer(raw) ?? {} };
   }
   if (isEmpty(raw)) {
     return block.required
@@ -187,9 +184,9 @@ export function checkAnswer(block: Block, raw: unknown): Check {
         : { ok: false, error: `Choose 1 to ${block.max}` };
     }
     case "payment": {
-      const parsed = paymentAnswerSchema.safeParse(raw);
-      return parsed.success
-        ? { ok: true, value: parsed.data }
+      const parsed = parsePaymentAnswer(raw);
+      return parsed
+        ? { ok: true, value: parsed }
         : { ok: false, error: "Choose what to pay for" };
     }
   }

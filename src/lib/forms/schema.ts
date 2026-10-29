@@ -255,16 +255,7 @@ export function parseFormSchema(value: unknown) {
   return formSchemaSchema.safeParse(value);
 }
 
-export function findPaymentBlock(schema: Pick<FormSchema, "blocks">) {
-  return schema.blocks.find(
-    (b): b is BlockOf<"payment"> => b.type === "payment",
-  );
-}
-
-/** Blocks that collect an answer (everything except statements). */
-export function isAnswerable(block: Block) {
-  return block.type !== "statement";
-}
+export { findPaymentBlock, isAnswerable } from "./helpers";
 
 const ID_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
 
